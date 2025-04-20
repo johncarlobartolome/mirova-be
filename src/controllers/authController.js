@@ -26,3 +26,33 @@ export const signUp = async (req, res) => {
     createErrors(res, 500, "Server error", error);
   }
 };
+
+export const signIn = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      createErrors(res, 400, "Invalid credentials", {
+        code: "INVALID_CREDENTIALS",
+      });
+    }
+
+    const same = await bcrypt.compare(password, user.password);
+
+    if (!same) {
+      createErrors(res, 400, "Invalid credentials", {
+        code: "INVALID_CREDENTIALS",
+      });
+    }
+
+    const { _id, name } = user;
+
+    const token = generateToken({ _id, name, email });
+    createResponse(res, 200, "Login successful", { token });
+  } catch (error) {
+    console.log(error);
+    createErrors(res, 500, "Server error", error);
+  }
+};

@@ -15,3 +15,12 @@ export const validateSignUp = [
     .isLength({ min: 8 })
     .withMessage("Password minimum length is 8"),
 ];
+
+export const validateSignIn = [
+  body("email")
+    .notEmpty()
+    .withMessage("Email is required")
+    .bail()
+    .isEmail()
+    .withMessage("Invalid email"),
+];
