@@ -1,6 +1,6 @@
 import app from "./app.js";
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT;
 app.listen(PORT, (err) => {
   if (err) {
     console.log(`Server having an error running on port: ${PORT}`);
