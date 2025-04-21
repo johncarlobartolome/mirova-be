@@ -56,7 +56,6 @@ export const sendEmail = async (to, subject, template, context) => {
       template,
       context,
     };
-    console.log(mailOptions);
     const info = await transporter.sendMail(mailOptions);
     return info;
   } catch (error) {
