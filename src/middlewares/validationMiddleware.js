@@ -24,3 +24,12 @@ export const validateSignIn = [
     .isEmail()
     .withMessage("Invalid email"),
 ];
+
+export const validateForgotPassword = [
+  body("email")
+    .notEmpty()
+    .withMessage("Email is required")
+    .bail()
+    .isEmail()
+    .withMessage("Invalid email"),
+];

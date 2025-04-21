@@ -7,6 +7,7 @@ import {
 import {
   validateSignIn,
   validateSignUp,
+  validateForgotPassword,
 } from "../middlewares/validationMiddleware.js";
 import handleValidationErrors from "../middlewares/handleValidationErrors.js";
 
@@ -14,6 +15,11 @@ const router = express.Router();
 
 router.post("/signup", validateSignUp, handleValidationErrors, signUp);
 router.post("/signin", validateSignIn, handleValidationErrors, signIn);
-router.post("/forgot-password", forgotPassword);
+router.post(
+  "/forgot-password",
+  validateForgotPassword,
+  handleValidationErrors,
+  forgotPassword
+);
 
 export default router;
