@@ -1,17 +1,9 @@
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
-export const generateToken = (payload) => {
+export const generateToken = (payload, expiresIn) => {
   try {
-    const { name, email } = payload;
-    const token = jwt.sign(
-      {
-        name,
-        email,
-      },
-      JWT_SECRET,
-      { expiresIn: "2h" }
-    );
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn });
     return token;
   } catch (error) {
     console.log(error);

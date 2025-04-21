@@ -1,5 +1,9 @@
 import express from "express";
-import { signUp, signIn } from "../controllers/authController.js";
+import {
+  signUp,
+  signIn,
+  forgotPassword,
+} from "../controllers/authController.js";
 import {
   validateSignIn,
   validateSignUp,
@@ -10,5 +14,6 @@ const router = express.Router();
 
 router.post("/signup", validateSignUp, handleValidationErrors, signUp);
 router.post("/signin", validateSignIn, handleValidationErrors, signIn);
+router.post("/forgot-password", forgotPassword);
 
 export default router;

@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt";
-import { generateToken } from "../utils/jwtUtils.js";
+import { generateToken } from "../services/jwtService.js";
 import User from "../models/User.js";
 import createErrors from "../utils/errors.js";
 import createResponse from "../utils/response.js";
+import { sendEmail } from "../services/emailService.js";
 
 export const signUp = async (req, res) => {
   try {
@@ -49,8 +50,27 @@ export const signIn = async (req, res) => {
 
     const { _id, name } = user;
 
-    const token = generateToken({ _id, name, email });
+    const token = generateToken({ _id, name, email }, "2h");
     createResponse(res, 200, "Login successful", { token });
+  } catch (error) {
+    console.log(error);
+    createErrors(res, 500, "Server error", error);
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const to = email;
+    const subject = "Recover Password";
+    const template = "forgotPassword";
+    const resetToken = generateToken({ email }, "30m");
+    const context = {
+      resetLink: `http://localhost:3000/reset-password?token=${resetToken}`,
+      company: "Mirova",
+    };
+    await sendEmail(to, subject, template, context);
+    createResponse(res, 200, "Recovery link sent");
   } catch (error) {
     console.log(error);
     createErrors(res, 500, "Server error", error);
