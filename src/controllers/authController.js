@@ -61,6 +61,10 @@ export const signIn = async (req, res) => {
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      createErrors(res, 400, "Email is not in use.", { code: "INVALID_EMAIL" });
+    }
     const to = email;
     const subject = "Recover Password";
     const template = "forgotPassword";
@@ -69,6 +73,11 @@ export const forgotPassword = async (req, res) => {
       resetLink: `http://localhost:3000/reset-password?token=${resetToken}`,
       company: "Mirova",
     };
+    const currentDate = new Date();
+    const dateIn30Minutes = new Date(currentDate.getTime() + 30 * 60 * 1000);
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = dateIn30Minutes;
+    await user.save();
     await sendEmail(to, subject, template, context);
     createResponse(res, 200, "Recovery link sent");
   } catch (error) {
