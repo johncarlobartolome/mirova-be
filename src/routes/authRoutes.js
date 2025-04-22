@@ -3,6 +3,7 @@ import {
   signUp,
   signIn,
   forgotPassword,
+  resetPassword,
 } from "../controllers/authController.js";
 import {
   validateSignIn,
@@ -21,5 +22,6 @@ router.post(
   handleValidationErrors,
   forgotPassword
 );
+router.post("/reset-password/:resetToken", resetPassword);
 
 export default router;

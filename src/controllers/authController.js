@@ -11,9 +11,8 @@ export const signUp = async (req, res) => {
     const exist = await User.findOne({ email });
 
     if (exist) {
-      createErrors(res, 400, "Email already in use", { code: "INVALID_EMAIL" });
-      res.status(400).json({
-        message: "Email already in use.",
+      return createErrors(res, 400, "Email already in use", {
+        code: "INVALID_EMAIL",
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -35,7 +34,7 @@ export const signIn = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      createErrors(res, 400, "Invalid credentials", {
+      return createErrors(res, 400, "Invalid credentials", {
         code: "INVALID_CREDENTIALS",
       });
     }
@@ -43,7 +42,7 @@ export const signIn = async (req, res) => {
     const same = await bcrypt.compare(password, user.password);
 
     if (!same) {
-      createErrors(res, 400, "Invalid credentials", {
+      return createErrors(res, 400, "Invalid credentials", {
         code: "INVALID_CREDENTIALS",
       });
     }
@@ -63,14 +62,16 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      createErrors(res, 400, "Email is not in use.", { code: "INVALID_EMAIL" });
+      return createErrors(res, 400, "Email is not in use.", {
+        code: "INVALID_EMAIL",
+      });
     }
     const to = email;
     const subject = "Recover Password";
     const template = "forgotPassword";
     const resetToken = generateToken({ email }, "30m");
     const context = {
-      resetLink: `http://localhost:3000/reset-password?token=${resetToken}`,
+      resetLink: `http://localhost:3000/reset-password?resetToken=${resetToken}`,
       company: "Mirova",
     };
     const currentDate = new Date();
@@ -80,6 +81,30 @@ export const forgotPassword = async (req, res) => {
     await user.save();
     await sendEmail(to, subject, template, context);
     createResponse(res, 200, "Recovery link sent");
+  } catch (error) {
+    console.log(error);
+    createErrors(res, 500, "Server error", error);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const resetPasswordToken = req.params.resetToken;
+
+    const user = await User.findOne({ resetPasswordToken });
+    if (!user) {
+      return createErrors(res, 400, "Invalid reset token");
+    }
+    if (user.resetPasswordExpires < new Date()) {
+      return createErrors(res, 400, "Reset token expired");
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+    createResponse(res, 200, "Password successfully changed");
   } catch (error) {
     console.log(error);
     createErrors(res, 500, "Server error", error);
