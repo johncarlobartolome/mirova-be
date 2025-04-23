@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
+import { performance } from "perf_hooks";
 import redisClient from "../config/redisClient.js";
 import {
   generateAccessToken,
@@ -120,7 +121,10 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = dateIn30Minutes;
     await user.save();
+    const start = performance.now();
     await sendEmail(to, subject, template, context);
+    const end = performance.now();
+    console.log(`Execution took ${end - start} ms`);
     createResponse(res, 200, "Recovery link sent");
   } catch (error) {
     console.log(error);
@@ -163,7 +167,6 @@ export const refreshToken = async (req, res) => {
     const decoded = await verifyToken(token, "REFRESH_TOKEN");
     const { _id, name, email } = decoded;
     const objectId = new mongoose.Types.ObjectId(_id);
-    console.log(typeof objectId);
     const accessToken = generateAccessToken({ _id: objectId, name, email });
     createResponse(res, 200, "Access token refreshed", { accessToken });
   } catch (error) {
