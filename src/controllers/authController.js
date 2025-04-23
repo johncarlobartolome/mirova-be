@@ -59,6 +59,12 @@ export const signIn = async (req, res) => {
     if (!user) {
       return createErrors(res, 400, "Invalid credentials", {
         code: "INVALID_CREDENTIALS",
+        details: [
+          {
+            path: "email",
+            msg: "Invalid credentials",
+          },
+        ],
       });
     }
 
@@ -67,6 +73,12 @@ export const signIn = async (req, res) => {
     if (!same) {
       return createErrors(res, 400, "Invalid credentials", {
         code: "INVALID_CREDENTIALS",
+        details: [
+          {
+            path: "email",
+            msg: "Invalid credentials",
+          },
+        ],
       });
     }
 
