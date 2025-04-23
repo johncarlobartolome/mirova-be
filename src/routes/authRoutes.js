@@ -4,6 +4,7 @@ import {
   signIn,
   forgotPassword,
   resetPassword,
+  refreshToken,
 } from "../controllers/authController.js";
 import {
   validateSignIn,
@@ -23,5 +24,6 @@ router.post(
   forgotPassword
 );
 router.post("/reset-password/:resetToken", resetPassword);
+router.post("/refresh-token", refreshToken);
 
 export default router;

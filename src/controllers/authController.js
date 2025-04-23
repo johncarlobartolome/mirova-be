@@ -1,5 +1,12 @@
 import bcrypt from "bcrypt";
-import { generateToken } from "../services/jwtService.js";
+import mongoose from "mongoose";
+import redisClient from "../config/redisClient.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  generateToken,
+  verifyToken,
+} from "../services/tokenService.js";
 import User from "../models/User.js";
 import createErrors from "../utils/errors.js";
 import createResponse from "../utils/response.js";
@@ -18,9 +25,24 @@ export const signUp = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
-    const token = generateToken({ name, email });
-
-    createResponse(res, 201, "User created successfully", { token });
+    const payload = {
+      _id: user._id,
+      name,
+      email,
+    };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+    createResponse(
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      }),
+      200,
+      "Signup successful",
+      { accessToken }
+    );
   } catch (error) {
     console.log(error);
     createErrors(res, 500, "Server error", error);
@@ -47,10 +69,29 @@ export const signIn = async (req, res) => {
       });
     }
 
-    const { _id, name } = user;
+    const payload = {
+      _id: user._id,
+      name: user._name,
+      email,
+    };
 
-    const token = generateToken({ _id, name, email }, "2h");
-    createResponse(res, 200, "Login successful", { token });
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+    console.log(refreshToken, user._id.toString());
+    await redisClient.set(refreshToken, user._id.toString(), {
+      EX: 7 * 24 * 60 * 60,
+    });
+    createResponse(
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      }),
+      200,
+      "Login successful",
+      { accessToken }
+    );
   } catch (error) {
     console.log(error);
     createErrors(res, 500, "Server error", error);
@@ -105,6 +146,26 @@ export const resetPassword = async (req, res) => {
     user.resetPasswordExpires = null;
     await user.save();
     createResponse(res, 200, "Password successfully changed");
+  } catch (error) {
+    console.log(error);
+    createErrors(res, 500, "Server error", error);
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    const token = req.cookies.refreshToken;
+
+    if (!token) return createErrors(res, 401, "Unauthorized", {});
+
+    const userId = await redisClient.get(token);
+    if (!userId) return createErrors(res, 403, "Forbidden");
+    const decoded = await verifyToken(token, "REFRESH_TOKEN");
+    const { _id, name, email } = decoded;
+    const objectId = new mongoose.Types.ObjectId(_id);
+    console.log(typeof objectId);
+    const accessToken = generateAccessToken({ _id: objectId, name, email });
+    createResponse(res, 200, "Access token refreshed", { accessToken });
   } catch (error) {
     console.log(error);
     createErrors(res, 500, "Server error", error);

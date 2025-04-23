@@ -11,6 +11,7 @@ const userSchema = mongoose.Schema(
       required: true,
       default: "user",
     },
+    refreshToken: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
   },
