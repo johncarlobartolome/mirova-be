@@ -1,7 +1,7 @@
 import app from "./app.js";
 
 const PORT = process.env.PORT;
-app.listen(PORT, (err) => {
+app.listen(PORT, "0.0.0.0", (err) => {
   if (err) {
     console.log(`Server having an error running on port: ${PORT}`);
     process.exit(1);
