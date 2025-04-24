@@ -21,6 +21,12 @@ export const signUp = async (req, res) => {
     if (exist) {
       return createErrors(res, 400, "Email already in use", {
         code: "INVALID_EMAIL",
+        details: [
+          {
+            path: "email",
+            msg: "Email already in use",
+          },
+        ],
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
