@@ -42,3 +42,7 @@ export const validateResetPassword = [
     .isLength({ min: 8 })
     .withMessage("Password minimum length is 8"),
 ];
+
+export const validateCreateBoard = [
+  body("title").notEmpty().withMessage("Title is required"),
+];
