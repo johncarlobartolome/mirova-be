@@ -10,6 +10,7 @@ import {
   validateSignIn,
   validateSignUp,
   validateForgotPassword,
+  validateResetPassword,
 } from "../middlewares/validationMiddleware.js";
 import handleValidationErrors from "../middlewares/handleValidationErrors.js";
 
@@ -23,7 +24,12 @@ router.post(
   handleValidationErrors,
   forgotPassword
 );
-router.post("/reset-password/:resetToken", resetPassword);
+router.post(
+  "/reset-password/:resetToken",
+  validateResetPassword,
+  handleValidationErrors,
+  resetPassword
+);
 router.post("/refresh-token", refreshToken);
 
 export default router;

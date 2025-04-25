@@ -122,8 +122,14 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      return createErrors(res, 400, "Email is not in use.", {
+      return createErrors(res, 400, "Email is not in use", {
         code: "INVALID_EMAIL",
+        details: [
+          {
+            path: "email",
+            msg: "Email is not in use",
+          },
+        ],
       });
     }
     const to = email;
@@ -131,7 +137,7 @@ export const forgotPassword = async (req, res) => {
     const template = "forgotPassword";
     const resetToken = generateToken({ email }, "30m");
     const context = {
-      resetLink: `http://localhost:3000/reset-password?resetToken=${resetToken}`,
+      resetLink: `http://localhost:5173/reset-password?resetToken=${resetToken}`,
       company: "Mirova",
     };
     const currentDate = new Date();
@@ -169,7 +175,6 @@ export const resetPassword = async (req, res) => {
     await user.save();
     createResponse(res, 200, "Password successfully changed");
   } catch (error) {
-    console.log(error);
     createErrors(res, 500, "Server error", error);
   }
 };

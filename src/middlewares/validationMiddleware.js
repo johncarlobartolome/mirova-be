@@ -33,3 +33,12 @@ export const validateForgotPassword = [
     .isEmail()
     .withMessage("Invalid email"),
 ];
+
+export const validateResetPassword = [
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .bail()
+    .isLength({ min: 8 })
+    .withMessage("Password minimum length is 8"),
+];
