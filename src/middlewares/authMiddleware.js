@@ -1,5 +1,5 @@
 import { verifyToken } from "../services/tokenService.js";
-import createErrors from "../utils/errors.js";
+import { AppError } from "../responses/appError.js";
 
 export default function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;

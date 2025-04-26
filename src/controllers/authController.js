@@ -9,25 +9,18 @@ import {
   verifyToken,
 } from "../services/tokenService.js";
 import User from "../models/User.js";
-import createErrors from "../utils/errors.js";
-import createResponse from "../utils/response.js";
+import { ApiResponse } from "../responses/apiResponse.js";
 import { sendEmail } from "../services/emailService.js";
+import { AppError } from "../responses/appError.js";
+import { FormError } from "../responses/formError.js";
 
-export const signUp = async (req, res) => {
+export const signUp = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
     const exist = await User.findOne({ email });
 
     if (exist) {
-      return createErrors(res, 400, "Email already in use", {
-        code: "INVALID_EMAIL",
-        details: [
-          {
-            path: "email",
-            msg: "Email already in use",
-          },
-        ],
-      });
+      throw new AppError("User already exists", 409, "RESOURCE_CONFLICT");
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashedPassword });
@@ -39,53 +32,57 @@ export const signUp = async (req, res) => {
     };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
-    createResponse(
-      res.cookie("refreshToken", refreshToken, {
+    // createResponse(
+    //   res.cookie("refreshToken", refreshToken, {
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: "Strict",
+    //     maxAge: 7 * 24 * 60 * 60 * 1000,
+    //   }),
+    //   200,
+    //   "Signup successful",
+    //   { accessToken }
+    // );
+    const data = { accessToken };
+    const response = new ApiResponse(data, "Sign up successful", 201);
+    return res
+      .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "Strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
-      }),
-      200,
-      "Signup successful",
-      { accessToken }
-    );
+      })
+      .status(response.statusCode)
+      .json(response);
   } catch (error) {
-    console.log(error);
-    createErrors(res, 500, "Server error", error);
+    next(error);
   }
 };
 
-export const signIn = async (req, res) => {
+export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return createErrors(res, 400, "Invalid credentials", {
-        code: "INVALID_CREDENTIALS",
-        details: [
-          {
-            path: "email",
-            msg: "Invalid credentials",
-          },
-        ],
-      });
+      throw new FormError([
+        {
+          path: "email",
+          msg: "Invalid credentials",
+        },
+      ]);
     }
 
     const same = await bcrypt.compare(password, user.password);
 
     if (!same) {
-      return createErrors(res, 400, "Invalid credentials", {
-        code: "INVALID_CREDENTIALS",
-        details: [
-          {
-            path: "email",
-            msg: "Invalid credentials",
-          },
-        ],
-      });
+      throw new FormError([
+        {
+          path: "email",
+          msg: "Invalid credentials",
+        },
+      ]);
     }
 
     const payload = {
@@ -100,20 +97,30 @@ export const signIn = async (req, res) => {
     await redisClient.set(refreshToken, user._id.toString(), {
       EX: 7 * 24 * 60 * 60,
     });
-    createResponse(
-      res.cookie("refreshToken", refreshToken, {
+    const data = { accessToken };
+    const response = new ApiResponse(data, "Sign in successful", 200);
+    return res
+      .cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "Strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
-      }),
-      200,
-      "Login successful",
-      { accessToken }
-    );
+      })
+      .status(response.statusCode)
+      .json(response);
+    // createResponse(
+    //   res.cookie("refreshToken", refreshToken, {
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: "Strict",
+    //     maxAge: 7 * 24 * 60 * 60 * 1000,
+    //   }),
+    //   200,
+    //   "Login successful",
+    //   { accessToken }
+    // );
   } catch (error) {
-    console.log(error);
-    createErrors(res, 500, "Server error", error);
+    next(error);
   }
 };
 

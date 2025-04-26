@@ -1,6 +1,5 @@
-import createErrors from "../utils/errors.js";
+import { ApiResponse } from "../responses/apiResponse.js";
 import Board from "../models/Board.js";
-import createResponse from "../utils/response.js";
 
 export const createBoard = async (req, res) => {
   try {

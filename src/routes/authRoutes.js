@@ -11,23 +11,23 @@ import {
   validateSignUp,
   validateForgotPassword,
   validateResetPassword,
-} from "../middlewares/validationMiddleware.js";
-import handleValidationErrors from "../middlewares/handleValidationErrors.js";
+} from "../validators/authValidator.js";
+import validateRequest from "../middlewares/validate.js";
 
 const router = express.Router();
 
-router.post("/signup", validateSignUp, handleValidationErrors, signUp);
-router.post("/signin", validateSignIn, handleValidationErrors, signIn);
+router.post("/signup", validateSignUp, validateRequest, signUp);
+router.post("/signin", validateSignIn, validateRequest, signIn);
 router.post(
   "/forgot-password",
   validateForgotPassword,
-  handleValidationErrors,
+  validateRequest,
   forgotPassword
 );
 router.post(
   "/reset-password/:resetToken",
   validateResetPassword,
-  handleValidationErrors,
+  validateRequest,
   resetPassword
 );
 router.post("/refresh-token", refreshToken);

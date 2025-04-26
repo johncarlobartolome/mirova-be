@@ -1,0 +1,19 @@
+2025-04-26 16:59:15 [error]: ReferenceError: next is not defined
+    at signIn (file:///E:/Programming/Projects/mirova-be/src/controllers/authController.js:134:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-26 17:00:00 [error]: ReferenceError: FormError is not defined
+    at signIn (file:///E:/Programming/Projects/mirova-be/src/controllers/authController.js:68:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-26 17:00:25 [error]: FormError: Validation failed
+    at signIn (file:///E:/Programming/Projects/mirova-be/src/controllers/authController.js:69:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-26 17:06:46 [error]: FormError: Validation failed
+    at signIn (file:///E:/Programming/Projects/mirova-be/src/controllers/authController.js:69:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-04-26 17:06:57 [error]: FormError: Validation failed
+    at signIn (file:///E:/Programming/Projects/mirova-be/src/controllers/authController.js:80:13)
+2025-04-26 17:07:01 [error]: FormError: Validation failed
+    at signIn (file:///E:/Programming/Projects/mirova-be/src/controllers/authController.js:80:13)
+2025-04-26 17:07:40 [error]: ReferenceError: user is not defined
+    at signIn (file:///E:/Programming/Projects/mirova-be/src/controllers/authController.js:68:5)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
