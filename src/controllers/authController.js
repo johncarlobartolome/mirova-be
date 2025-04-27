@@ -32,17 +32,6 @@ export const signUp = async (req, res, next) => {
     };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
-    // createResponse(
-    //   res.cookie("refreshToken", refreshToken, {
-    //     httpOnly: true,
-    //     secure: true,
-    //     sameSite: "Strict",
-    //     maxAge: 7 * 24 * 60 * 60 * 1000,
-    //   }),
-    //   200,
-    //   "Signup successful",
-    //   { accessToken }
-    // );
     const data = { accessToken };
     const response = new ApiResponse(data, "Sign up successful", 201);
     return res
@@ -68,7 +57,7 @@ export const signIn = async (req, res, next) => {
     if (!user) {
       throw new FormError([
         {
-          path: "email",
+          field: "email",
           msg: "Invalid credentials",
         },
       ]);
@@ -79,7 +68,7 @@ export const signIn = async (req, res, next) => {
     if (!same) {
       throw new FormError([
         {
-          path: "email",
+          field: "email",
           msg: "Invalid credentials",
         },
       ]);
@@ -108,36 +97,22 @@ export const signIn = async (req, res, next) => {
       })
       .status(response.statusCode)
       .json(response);
-    // createResponse(
-    //   res.cookie("refreshToken", refreshToken, {
-    //     httpOnly: true,
-    //     secure: true,
-    //     sameSite: "Strict",
-    //     maxAge: 7 * 24 * 60 * 60 * 1000,
-    //   }),
-    //   200,
-    //   "Login successful",
-    //   { accessToken }
-    // );
   } catch (error) {
     next(error);
   }
 };
 
-export const forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      return createErrors(res, 400, "Email is not in use", {
-        code: "INVALID_EMAIL",
-        details: [
-          {
-            path: "email",
-            msg: "Email is not in use",
-          },
-        ],
-      });
+      throw new FormError([
+        {
+          field: "email",
+          msg: "Email not in use",
+        },
+      ]);
     }
     const to = email;
     const subject = "Recover Password";
@@ -158,8 +133,7 @@ export const forgotPassword = async (req, res) => {
     console.log(`Execution took ${end - start} ms`);
     createResponse(res, 200, "Recovery link sent");
   } catch (error) {
-    console.log(error);
-    createErrors(res, 500, "Server error", error);
+    next(error);
   }
 };
 

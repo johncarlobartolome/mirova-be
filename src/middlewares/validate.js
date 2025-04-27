@@ -4,7 +4,10 @@ import { FormError } from "../responses/formError.js";
 const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    throw new FormError(errors.array());
+    const formattedErrors = errors.array().map((err) => {
+      return { field: err.path, msg: err.msg };
+    });
+    throw new FormError(formattedErrors);
   }
   next();
 };

@@ -1,4 +1,6 @@
 .env
 *.pem
-node_modules;
-npm-debug.log;
+node_modules
+npm-debug.log
+logs
+resources
