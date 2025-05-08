@@ -1,13 +1,14 @@
 import { validationResult } from "express-validator";
-import { FormError } from "../responses/formError.js";
+import { APIError, FieldError } from "../responses/apiError.js";
 
 const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const formattedErrors = errors.array().map((err) => {
-      return { field: err.path, msg: err.msg };
+      return new FieldError(err.path, err.msg);
     });
-    throw new FormError(formattedErrors);
+    console.log(formattedErrors);
+    return next(APIError.validationError("Validation error.", formattedErrors));
   }
   next();
 };

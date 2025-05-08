@@ -11,7 +11,7 @@ import {
 import User from "../models/User.js";
 import { ApiResponse } from "../responses/apiResponse.js";
 import { sendEmail } from "../services/emailService.js";
-import { AppError } from "../responses/appError.js";
+import { APIError, FieldError } from "../responses/apiError.js";
 import { FormError } from "../responses/formError.js";
 
 export const signUp = async (req, res, next) => {
@@ -20,7 +20,15 @@ export const signUp = async (req, res, next) => {
     const exist = await User.findOne({ email });
 
     if (exist) {
-      throw new AppError("User already exists", 409, "RESOURCE_CONFLICT");
+      const errors = [];
+      errors.push(new FieldError("email", "Email is already in use."));
+      throw new APIError(
+        "RESOURCE_CONFLICT",
+        "User already exists.",
+        400,
+        null,
+        errors
+      );
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashedPassword });
@@ -32,8 +40,7 @@ export const signUp = async (req, res, next) => {
     };
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
-    const data = { accessToken };
-    const response = new ApiResponse(data, "Sign up successful", 201);
+
     return res
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -41,8 +48,15 @@ export const signUp = async (req, res, next) => {
         sameSite: "Strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
-      .status(response.statusCode)
-      .json(response);
+      .status(201)
+      .json({
+        success: true,
+        message: "Signup successful.",
+        data: {
+          accessToken,
+        },
+        error: null,
+      });
   } catch (error) {
     next(error);
   }
