@@ -23,6 +23,12 @@ export const validateSignIn = [
     .bail()
     .isEmail()
     .withMessage("Invalid email"),
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .bail()
+    .isLength({ min: 8 })
+    .withMessage("Password minimum length is 8"),
 ];
 
 export const validateForgotPassword = [
