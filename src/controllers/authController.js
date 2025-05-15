@@ -132,12 +132,20 @@ export const forgotPassword = async (req, res, next) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      throw new FormError([
-        {
-          field: "email",
-          msg: "Email not in use",
-        },
-      ]);
+      const errors = [];
+      errors.push(
+        new FieldError(
+          "email",
+          "This email address is not registered in our system."
+        )
+      );
+      throw new APIError(
+        "INVALID_REQUEST",
+        "Invalid email provided.",
+        400,
+        null,
+        errors
+      );
     }
     const to = email;
     const subject = "Recover Password";
@@ -156,7 +164,10 @@ export const forgotPassword = async (req, res, next) => {
     await sendEmail(to, subject, template, context);
     const end = performance.now();
     console.log(`Execution took ${end - start} ms`);
-    createResponse(res, 200, "Recovery link sent");
+    return res.status(200).json({
+      success: true,
+      message: "Recovery link sent.",
+    });
   } catch (error) {
     next(error);
   }
