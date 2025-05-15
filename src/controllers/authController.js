@@ -69,23 +69,29 @@ export const signIn = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      throw new FormError([
-        {
-          field: "email",
-          msg: "Invalid credentials",
-        },
-      ]);
+      const errors = [];
+      errors.push(new FieldError("email", "Invalid credentials."));
+      throw new APIError(
+        "AUTHENTICATION_FAILED",
+        "Invalid credentials.",
+        400,
+        null,
+        errors
+      );
     }
 
     const same = await bcrypt.compare(password, user.password);
 
     if (!same) {
-      throw new FormError([
-        {
-          field: "email",
-          msg: "Invalid credentials",
-        },
-      ]);
+      const errors = [];
+      errors.push(new FieldError("email", "Invalid credentials."));
+      throw new APIError(
+        "AUTHENTICATION_FAILED",
+        "Invalid credentials.",
+        400,
+        null,
+        errors
+      );
     }
 
     const payload = {
@@ -100,8 +106,6 @@ export const signIn = async (req, res, next) => {
     await redisClient.set(refreshToken, user._id.toString(), {
       EX: 7 * 24 * 60 * 60,
     });
-    const data = { accessToken };
-    const response = new ApiResponse(data, "Sign in successful", 200);
     return res
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
@@ -109,8 +113,15 @@ export const signIn = async (req, res, next) => {
         sameSite: "Strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
-      .status(response.statusCode)
-      .json(response);
+      .status(201)
+      .json({
+        success: true,
+        message: "Signin successful.",
+        data: {
+          accessToken,
+        },
+        error: null,
+      });
   } catch (error) {
     next(error);
   }
