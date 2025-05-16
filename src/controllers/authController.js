@@ -180,19 +180,38 @@ export const resetPassword = async (req, res) => {
 
     const user = await User.findOne({ resetPasswordToken });
     if (!user) {
-      return createErrors(res, 400, "Invalid reset token");
+      const errors = [];
+      errors.push(new FieldError("password", "Invalid reset token."));
+      throw new APIError(
+        "INVALID_TOKEN",
+        "Invalid reset token.",
+        400,
+        null,
+        errors
+      );
     }
     if (user.resetPasswordExpires < new Date()) {
-      return createErrors(res, 400, "Reset token expired");
+      const errors = [];
+      errors.push(new FieldError("password", "Reset token expired."));
+      throw new APIError(
+        "TOKEN_EXPIRED",
+        "Reset token expired.",
+        400,
+        null,
+        errors
+      );
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
     await user.save();
-    createResponse(res, 200, "Password successfully changed");
+    return res.status(200).json({
+      success: true,
+      message: "Password successfully changed.",
+    });
   } catch (error) {
-    createErrors(res, 500, "Server error", error);
+    next(error);
   }
 };
 
@@ -200,17 +219,27 @@ export const refreshToken = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
 
-    if (!token) return createErrors(res, 401, "Unauthorized", {});
+    if (!token) {
+      throw new APIError("UNAUTHORIZED", "Unauthorized", 401);
+    }
 
     const userId = await redisClient.get(token);
-    if (!userId) return createErrors(res, 403, "Forbidden");
-    const decoded = await verifyToken(token, "REFRESH_TOKEN");
+    if (!userId) {
+      throw new APIError("FORBIDDEN", "Forbidden", 403);
+    }
+    const decoded = verifyToken(token, "REFRESH_TOKEN");
     const { _id, name, email } = decoded;
     const objectId = new mongoose.Types.ObjectId(_id);
     const accessToken = generateAccessToken({ _id: objectId, name, email });
-    createResponse(res, 200, "Access token refreshed", { accessToken });
+    return res.status(201).json({
+      success: true,
+      message: "Access token refreshed.",
+      data: {
+        accessToken,
+      },
+      error: null,
+    });
   } catch (error) {
-    console.log(error);
-    createErrors(res, 500, "Server error", error);
+    next(error);
   }
 };

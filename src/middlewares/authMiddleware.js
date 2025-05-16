@@ -5,7 +5,11 @@ export default function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer")) {
-    return createErrors(res, 401, "No token provided or invalid format", {});
+    throw new APIError(
+      "INVALID_TOKEN",
+      "No token provided or invalid format.",
+      401
+    );
   }
 
   const token = authHeader.split(" ")[1];
@@ -16,6 +20,6 @@ export default function authMiddleware(req, res, next) {
     req.user = decoded;
     next();
   } catch (error) {
-    return createErrors(res, 403, "Invalid or expired token");
+    throw new APIError("INVALID_TOKEN", "Invalid or expired token.", 401);
   }
 }
