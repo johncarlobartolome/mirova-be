@@ -8,6 +8,7 @@ import {
   createBoard,
   getBoards,
   updateBoard,
+  deleteBoard,
 } from "../controllers/boardController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
@@ -28,5 +29,6 @@ router.patch(
   authMiddleware,
   updateBoard
 );
+router.delete("/:boardId", authMiddleware, deleteBoard);
 
 export default router;

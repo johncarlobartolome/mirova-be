@@ -66,3 +66,20 @@ export const updateBoard = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteBoard = async (req, res, next) => {
+  try {
+    const { boardId } = req.params;
+    const deletedBoard = await Board.findByIdAndDelete(boardId);
+    return res.status(200).json({
+      success: true,
+      message: "Board deleted successfully.",
+      data: {
+        board: deletedBoard,
+      },
+      error: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
